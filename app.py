@@ -1,10 +1,10 @@
-from flask import Flask, request, jsonify, Response, stream_with_context
+from flask import Flask, request, jsonify, Response, stream_with_context, render_template
 from flask_cors import CORS
 import requests
-import json
 import re
 
-app = Flask(__name__)
+# Tambahkan template_folder='.' agar Flask mencari index.html di folder root (luar folder templates)
+app = Flask(__name__, template_folder='.')
 CORS(app)
 
 BASE_HEADERS = {
@@ -18,23 +18,19 @@ BASE_HEADERS = {
 def sanitize_filename(name):
     return re.sub(r'[\\/*?:"<>|]', "", name)
 
+# --- BAGIAN INI YANG DIUBAH ---
 @app.route('/')
 def index():
-    return jsonify({
-        "status": "online",
-        "message": "SpotDown API Ready",
-        "endpoints": {
-            "search": "/api/search?q={judul_lagu}",
-            "download": "/api/download?url={url}&title={judul}&artist={artis}"
-        }
-    })
+    # Flask sekarang yang akan merender HTML, bukan Vercel
+    return render_template('index.html')
+# ------------------------------
 
 @app.route('/api/search', methods=['GET'])
 def search_music():
     query = request.args.get('q')
     
     if not query:
-        return jsonify({"error": "Parameter 'q' (query) diperlukan."}), 400
+        return jsonify({"error": "Parameter 'q' diperlukan."}), 400
 
     try:
         session = requests.Session()
